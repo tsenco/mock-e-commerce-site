@@ -1,6 +1,12 @@
 # Cart Feature — Implementation Plan
 
-This plan assumes the spec in `SPEC.md` is authoritative. Steps are ordered so each builds on the last — complete them in sequence. All backend steps precede frontend steps; tests follow implementation.
+This plan assumes the spec in `SPEC.md` is authoritative. Steps follow strict dependency order and **must be completed in sequence**:
+
+1. **Models / Interfaces** — define the data shapes and contracts that everything else depends on.
+2. **Service layer** — implement business logic against those interfaces before any endpoint consumes them.
+3. **API Endpoints** — wire up handlers only after the service is fully implemented and verified.
+4. **Frontend components** — build types → API functions → hooks → components → wiring, in that order, so each layer has its dependency ready.
+5. **Tests** — backend unit tests, then backend integration tests, then frontend hook tests, then frontend component tests.
 
 ---
 
@@ -423,17 +429,28 @@ Test cases:
 ## Sequence Summary
 
 ```
-Step 1  — Model: UpdateCartRequest, CartSummary
-Step 2  — Interface: ICartService.UpdateQuantity
-Step 3  — Service: InMemoryCartService (all methods)
-Step 4  — Endpoints: implement GET, POST, PUT, DELETE handlers + register PUT route
-Step 5  — Frontend types: CartItem, CartSummary, UpdateCartRequest
-Step 6  — Frontend API: fetchCart, updateCartItem, removeFromCart, clearCart
-Step 7  — Frontend hook: useCart
-Step 8  — Frontend component: CartPanel
-Step 9  — App.tsx: wire useCart + CartPanel + Header onCartClick
-Step 10 — Tests: InMemoryCartService unit tests
-Step 11 — Tests: Cart endpoint integration tests
-Step 12 — Tests: useCart hook unit tests
-Step 13 — Tests: CartPanel component tests
+── MODELS / INTERFACES ──────────────────────────────────────
+Step 1  — Models:     UpdateCartRequest, CartSummary
+Step 2  — Interface:  ICartService.UpdateQuantity
+
+── SERVICE LAYER ────────────────────────────────────────────
+Step 3  — Service:    InMemoryCartService (all 6 methods)
+
+── API ENDPOINTS ────────────────────────────────────────────
+Step 4  — Endpoints:  GET, POST, PUT, DELETE handlers + register PUT route
+
+── FRONTEND COMPONENTS ──────────────────────────────────────
+Step 5  — Types:      CartItem, CartSummary, UpdateCartRequest (types/index.ts)
+Step 6  — API:        fetchCart, updateCartItem, removeFromCart, clearCart (api/index.ts)
+Step 7  — Hook:       useCart (hooks/useCart.ts)
+Step 8  — Component:  CartPanel (components/CartPanel/)
+Step 9  — Wiring:     App.tsx — useCart + CartPanel + Header onCartClick
+
+── TESTS ─────────────────────────────────────────────────────
+Step 10 — Backend unit:        InMemoryCartService
+Step 11 — Backend integration: Cart endpoints (GET, POST, PUT, DELETE)
+Step 12 — Frontend unit:       useCart hook
+Step 13 — Frontend unit:       CartPanel component
 ```
+
+Each step depends only on steps above it. Do not jump ahead — e.g. do not write endpoint tests (Step 11) before the service is implemented (Step 3).
