@@ -16,17 +16,33 @@ const mockProducts: Product[] = [
 ];
 
 vi.mock('../../src/frontend/src/hooks/useProducts');
+vi.mock('../../src/frontend/src/hooks/useCart');
 vi.mock('../../src/frontend/src/api');
 
 import { useProducts } from '../../src/frontend/src/hooks/useProducts';
-import { addToCart } from '../../src/frontend/src/api';
+import { useCart } from '../../src/frontend/src/hooks/useCart';
 
 const mockedUseProducts = vi.mocked(useProducts);
-const mockedAddToCart = vi.mocked(addToCart);
+const mockedUseCart = vi.mocked(useCart);
+
+const mockAddItem = vi.fn();
 
 describe('App', () => {
+  beforeEach(() => {
+    mockedUseCart.mockReturnValue({
+      cart: null,
+      loading: false,
+      error: null,
+      addItem: mockAddItem,
+      updateItem: vi.fn(),
+      removeItem: vi.fn(),
+      emptyCart: vi.fn(),
+      loadCart: vi.fn(),
+    });
+  });
+
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders the header with shop name', () => {
@@ -79,13 +95,7 @@ describe('App', () => {
 
   it('shows notification after adding to cart', async () => {
     mockedUseProducts.mockReturnValue({ products: mockProducts, loading: false, error: null });
-    mockedAddToCart.mockResolvedValue({
-      productId: 1,
-      productName: 'Test Headphones',
-      unitPrice: 79.99,
-      quantity: 1,
-      totalPrice: 79.99,
-    });
+    mockAddItem.mockResolvedValue(undefined);
 
     render(<App />);
     await userEvent.click(screen.getByRole('button', { name: /add test headphones to cart/i }));
@@ -95,7 +105,7 @@ describe('App', () => {
 
   it('shows error notification when add to cart fails', async () => {
     mockedUseProducts.mockReturnValue({ products: mockProducts, loading: false, error: null });
-    mockedAddToCart.mockRejectedValue(new Error('Server error'));
+    mockAddItem.mockRejectedValue(new Error('Server error'));
 
     render(<App />);
     await userEvent.click(screen.getByRole('button', { name: /add test headphones to cart/i }));

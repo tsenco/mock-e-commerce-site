@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CartPanel } from '../../../src/frontend/src/components/CartPanel/CartPanel';
-import type { CartSummary } from '../../../src/frontend/src/types';
+import { CartPanel } from '../../../../src/frontend/src/components/CartPanel/CartPanel';
+import type { CartSummary } from '../../../../src/frontend/src/types';
 
 const mockOnUpdateItem = vi.fn();
 const mockOnRemoveItem = vi.fn();

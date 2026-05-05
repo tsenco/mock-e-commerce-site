@@ -42,7 +42,7 @@ const cartWithItem: CartSummary = {
 
 describe('useCart', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('fetches cart on mount', async () => {
