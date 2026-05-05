@@ -73,7 +73,7 @@ Adds a product to the cart. If the product is already in the cart, increments th
 
 | Condition | Status | Detail |
 |---|---|---|
-| `quantity < 1` | `400 Bad Request` | `ValidationProblem`: `errors.quantity = ["Quantity must be at least 1"]` |
+| `quantity ≤ 0` (zero or negative, e.g. `0`, `-1`, `-3`) | `400 Bad Request` | `ValidationProblem`: `errors.quantity = ["Quantity must be at least 1"]` |
 | `quantity > 5` | `400 Bad Request` | `ValidationProblem`: `errors.quantity = ["Quantity must be between 1 and 5"]` |
 | Product ID not found in catalog | `404 Not Found` | `"Product {productId} not found"` |
 | `existingQuantity + requestedQuantity > 5` | `400 Bad Request` | `ValidationProblem`: `errors.quantity = ["Maximum quantity of 5 per item exceeded"]` |
@@ -100,7 +100,7 @@ Sets the quantity of an existing cart item to **exactly** the provided value. Th
 
 | Condition | Status | Detail |
 |---|---|---|
-| `quantity < 1` | `400 Bad Request` | `ValidationProblem`: `errors.quantity = ["Quantity must be at least 1"]` — use `DELETE` to remove items |
+| `quantity ≤ 0` (zero or negative, e.g. `0`, `-1`, `-3`) | `400 Bad Request` | `ValidationProblem`: `errors.quantity = ["Quantity must be at least 1"]` — use `DELETE` to remove items |
 | `quantity > 5` | `400 Bad Request` | `ValidationProblem`: `errors.quantity = ["Quantity must be between 1 and 5"]` |
 | `productId` not found in product catalog | `404 Not Found` | `"Product {productId} not found"` |
 | `productId` not currently in cart | `404 Not Found` | `"Cart item for product {productId} not found"` |
@@ -130,7 +130,7 @@ Clears all items from the cart. Always returns `204 No Content`.
 
 | Rule | Applies to | Enforcement level |
 |---|---|---|
-| `quantity` ≥ 1 | POST, PUT | Endpoint handler (ValidationProblem) |
+| `quantity` ≥ 1 — zero (`0`) and all negative values (e.g. `-1`, `-3`) are rejected | POST, PUT | Endpoint handler (ValidationProblem) |
 | `quantity` ≤ 5 | POST, PUT | Endpoint handler (ValidationProblem) |
 | `existingQty + requestedQty` ≤ 5 | POST only | Endpoint handler (ValidationProblem) |
 | Product must exist in catalog | POST, PUT | Endpoint handler (NotFound) |
@@ -254,7 +254,8 @@ clearCart(): Promise<void>
 | 4 | POST where `existingQty (3) + requestedQty (3) = 6` | `400 Bad Request` — `"Maximum quantity of 5 per item exceeded"` |
 | 5 | PUT on a valid product not yet in the cart | `404 Not Found` — `"Cart item for product {id} not found"` |
 | 6 | PUT on a product ID not in the catalog | `404 Not Found` — `"Product {id} not found"` (catalog check precedes cart check) |
-| 7 | PUT with `quantity = 0` | `400 Bad Request` — `ValidationProblem` — direct to use DELETE |
+| 7 | PUT with `quantity = 0` | `400 Bad Request` — `ValidationProblem`: `errors.quantity = ["Quantity must be at least 1"]` — use `DELETE` to remove items |
+| 7a | PUT with `quantity = -3` (negative) | `400 Bad Request` — `ValidationProblem`: `errors.quantity = ["Quantity must be at least 1"]` — use `DELETE` to remove items |
 | 8 | PUT with `quantity = 6` | `400 Bad Request` — `ValidationProblem` |
 | 9 | GET when cart is empty | `200 OK` — `{ items: [], totalItems: 0, subtotal: 0.00 }` |
 | 10 | DELETE on a product not in the cart | `404 Not Found` |

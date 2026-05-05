@@ -111,7 +111,8 @@ Return type changes from `Ok<IEnumerable<CartItem>>` to `Ok<CartSummary>`.
 Validation order: (1) validate `request.Quantity` range, (2) look up product in catalog, (3) check max-qty constraint.
 
 ```
-if quantity < 1 → ValidationProblem(errors: { quantity: ["Quantity must be at least 1"] })
+// Zero and negative quantities (e.g. 0, -1, -3) are rejected the same as quantity < 1
+if quantity <= 0 → ValidationProblem(errors: { quantity: ["Quantity must be at least 1"] })
 if quantity > 5 → ValidationProblem(errors: { quantity: ["Quantity must be between 1 and 5"] })
 product = productService.GetById(request.ProductId)
 if product is null → NotFound("Product {id} not found")
@@ -139,7 +140,8 @@ internal static Results<Ok<CartItem>, NotFound<string>, ValidationProblem> Updat
 Validation order: (1) validate `request.Quantity` range, (2) look up product in catalog, (3) look up item in cart.
 
 ```
-if quantity < 1 → ValidationProblem(errors: { quantity: ["Quantity must be at least 1"] })
+// Zero and negative quantities (e.g. 0, -1, -3) are rejected the same as quantity < 1
+if quantity <= 0 → ValidationProblem(errors: { quantity: ["Quantity must be at least 1"] })
 if quantity > 5 → ValidationProblem(errors: { quantity: ["Quantity must be between 1 and 5"] })
 product = productService.GetById(productId)
 if product is null → NotFound("Product {productId} not found")
@@ -357,12 +359,14 @@ Test cases:
 | GET /api/cart | After adding item | `200` — correct `totalItems` and `subtotal` |
 | POST /api/cart | New item | `201` — correct CartItem fields |
 | POST /api/cart | Existing item (increments) | `200` — updated quantity |
-| POST /api/cart | `quantity = 0` | `400` — ValidationProblem |
+| POST /api/cart | `quantity = 0` | `400` — ValidationProblem (`errors.quantity`) |
+| POST /api/cart | `quantity = -3` (negative) | `400` — ValidationProblem (`errors.quantity`) |
 | POST /api/cart | `quantity = 6` | `400` — ValidationProblem |
 | POST /api/cart | Unknown `productId` | `404` |
 | POST /api/cart | Exceeds max qty | `400` — ValidationProblem |
 | PUT /api/cart/{id} | Valid update | `200` — quantity equals request |
-| PUT /api/cart/{id} | `quantity = 0` | `400` — ValidationProblem |
+| PUT /api/cart/{id} | `quantity = 0` | `400` — ValidationProblem (`errors.quantity`) |
+| PUT /api/cart/{id} | `quantity = -3` (negative) | `400` — ValidationProblem (`errors.quantity`) |
 | PUT /api/cart/{id} | `quantity = 6` | `400` — ValidationProblem |
 | PUT /api/cart/{id} | Product not in catalog | `404` — "Product … not found" |
 | PUT /api/cart/{id} | Product in catalog but not in cart | `404` — "Cart item for product … not found" |
