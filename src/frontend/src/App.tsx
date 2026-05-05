@@ -3,14 +3,16 @@ import type { Product } from './types';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
 import { ProductList } from './components/ProductList';
+import { CartPanel } from './components/CartPanel';
 import { useProducts } from './hooks/useProducts';
-import { addToCart } from './api';
+import { useCart } from './hooks/useCart';
 import './App.css';
 
 export function App() {
   const { products, loading, error } = useProducts();
+  const { cart, loading: cartLoading, error: cartError, addItem, updateItem, removeItem, emptyCart } = useCart();
   const [cartMessage, setCartMessage] = useState<string | null>(null);
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -21,8 +23,7 @@ export function App() {
 
   async function handleAddToCart(product: Product) {
     try {
-      await addToCart({ productId: product.id, quantity: 1 });
-      setCartItemCount((prev) => prev + 1);
+      await addItem(product.id, 1);
       setCartMessage(`"${product.name}" added to cart!`);
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setCartMessage(null), 3000);
@@ -33,7 +34,7 @@ export function App() {
 
   return (
     <div className="app">
-      <Header cartItemCount={cartItemCount} />
+      <Header cartItemCount={cart?.totalItems ?? 0} onCartClick={() => setIsCartOpen(true)} />
       <HeroBanner />
 
       <main className="app__main">
@@ -51,6 +52,19 @@ export function App() {
           <ProductList products={products} onAddToCart={handleAddToCart} />
         )}
       </main>
+
+      {isCartOpen && (
+        <CartPanel
+          cart={cart}
+          loading={cartLoading}
+          error={cartError}
+          onUpdateItem={updateItem}
+          onRemoveItem={removeItem}
+          onClearCart={emptyCart}
+          onClose={() => setIsCartOpen(false)}
+        />
+      )}
     </div>
   );
 }
+
