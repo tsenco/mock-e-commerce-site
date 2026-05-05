@@ -67,7 +67,7 @@ CartItem? UpdateQuantity(int productId, int quantity);
 
 **File**: `src/backend/MockEcommerce.Api/Services/InMemoryCartService.cs`
 
-Implement all six methods. All mutations acquire `_lock` before modifying `_cart`.
+> **Note**: All five existing methods (`GetAll`, `GetByProductId`, `Add`, `Remove`, `Clear`) currently contain only `throw new NotImplementedException();` — they are stubs. Replace every stub body with a real implementation and add the new `UpdateQuantity` method. All mutations acquire `_lock` before modifying `_cart`.
 
 | Method | Implementation notes |
 |---|---|
